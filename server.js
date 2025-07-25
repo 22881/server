@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 // 📄 Функція запису в Google Таблицю
 async function writeToGoogleSheet(data) {
-  const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
+  const doc = new GoogleSpreadsheet('1phUJoThMN-PFG62ko3eA1TwkBub74S7RedSX038afNQ');
   await doc.useServiceAccountAuth(creds);
   await doc.loadInfo();
 
