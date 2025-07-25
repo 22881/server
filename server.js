@@ -1,32 +1,32 @@
 const express = require('express');
 const cors = require('cors');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')('sk_test_51RlQIwIwHNIYYpTvFqeavjq6PyYZCdzkawCXJEn8K6dv7gj7jDvSXoFAt0rIVmbTMtVpaxETrgbPlYHKa4GDs65P00A2AvzQdW');
 const bodyParser = require('body-parser');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
-const creds = require('./credentials.json'); // Google Service Account
+const creds = require('./credentials.json'); // твій JSON ключ Google
 
 const app = express();
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const endpointSecret = 'whsec_ff449723d7558d6be972de38a743793611a5db5307cf7df495d2313765aa8248';
 
 app.use(cors());
-app.use(express.static('public'));
 
-// Розділяємо raw і json тіла
+// Raw body для webhook, JSON для інших запитів
 app.use((req, res, next) => {
   if (req.originalUrl === '/webhook') {
-    next(); // raw body
+    next();
   } else {
-    bodyParser.json()(req, res, next); // json для всього іншого
+    bodyParser.json()(req, res, next);
   }
 });
 
-// 📄 Функція запису в Google Таблицю
+// Google Sheets функція
 async function writeToGoogleSheet(data) {
   const doc = new GoogleSpreadsheet('1phUJoThMN-PFG62ko3eA1TwkBub74S7RedSX038afNQ');
   await doc.useServiceAccountAuth(creds);
   await doc.loadInfo();
 
-  const sheet = doc.sheetsByIndex[0];
+  const sheet = doc.sheetsByIndex[0]; // перший лист
+
   await sheet.addRow({
     "Дата": new Date().toLocaleString('uk-UA'),
     "Номер замовлення": data.orderId,
@@ -41,11 +41,11 @@ async function writeToGoogleSheet(data) {
   console.log('✅ Дані записані в Google Таблицю');
 }
 
-// ✅ Створення Stripe Checkout-сесії
+// Stripe checkout session
 app.post('/create-checkout-session', async (req, res) => {
   const { cart, form } = req.body;
 
-  const orderId = Math.floor(100000 + Math.random() * 900000).toString();
+  const orderId = Math.floor(100000 + Math.random() * 900000).toString(); // шістизначний номер
 
   const line_items = cart.map(item => ({
     price_data: {
@@ -72,6 +72,7 @@ app.post('/create-checkout-session', async (req, res) => {
         address: form.address
       }
     });
+  
 
     res.json({ id: session.id });
   } catch (err) {
@@ -80,7 +81,7 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-// ✅ Webhook Stripe
+// Webhook Stripe
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -114,8 +115,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   res.status(200).send('Webhook received');
 });
 
-// ✅ Запуск сервера
-const PORT = process.env.PORT || 4242;
-app.listen(PORT, () => {
-  console.log(`✅ Сервер працює на порті ${PORT}`);
+app.listen(4242, () => {
+  console.log('✅ Сервер працює на http://localhost:4242');
 });
