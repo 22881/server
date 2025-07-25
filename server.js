@@ -6,7 +6,7 @@ const { GoogleSpreadsheet } = require('google-spreadsheet');
 const creds = require('./credentials.json'); // твій JSON ключ Google
 
 const app = express();
-const endpointSecret = 'whsec_ff449723d7558d6be972de38a743793611a5db5307cf7df495d2313765aa8248';
+const endpointSecret = 'whsec_yzKT3McOzDnQxalRYa3EM9mlGpjQ8vQt';
 
 app.use(cors());
 
